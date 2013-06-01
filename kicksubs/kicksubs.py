@@ -2,7 +2,7 @@ import cgi
 from google.appengine.api import users
 from google.appengine.ext import ndb
 import webapp2
-from webapp2_extras.appengine.users import login_required
+from webapp2_extras.appengine.users import login_required, admin_required
 import urllib
 
 NEW_PROJECT_FORM_HTML = """\
@@ -10,7 +10,7 @@ NEW_PROJECT_FORM_HTML = """\
       <div>Title: <input name="title" rows="1"></input></div>
       Description: <div><textarea name="description"3"  rows="cols="60"></textarea></div>
       <p> Want to put up some of your own money to back this project? 
-      <div>Amount: <input name="amount_backed" rows="1"></input></div>
+      <div>Amount: <input name="amount_backed" value=10></input></div>
       <div><input type="submit" value="Submit Project"></div>
     </form>
 """
@@ -26,8 +26,16 @@ ADD_BACKING_FORM_HTML = """\
 ADD_SUBMISSION_FORM_HTML = """\
     <form action="/add_submission_post" method="post">
       <div><input name="title" value=%s></input></div>
-      <div><textarea name="content" rows="1">50</textarea></div>
+      Content: <div><textarea name="content" rows="3"></textarea></div>
       <div><input type="submit" value="Confirm Submission"></div>
+    </form>
+"""
+
+FUFILL_PROJECT_FORM_HTML = """\
+    <form action="/fufill_project_post" method="post">
+    Title: <input name="title" value=%s></input>
+    Chosen user: <input name="chosen_user"></input>
+    <input type="submit" value="Fufill Project!"></div>
     </form>
 """
 
@@ -67,7 +75,7 @@ class Project(ndb.Model):
     description = ndb.StringProperty()
     date_created = ndb.DateTimeProperty(auto_now_add=True)
     backers = ndb.StructuredProperty(Backing, repeated=True)
-    fufilled = ndb.BooleanProperty()
+    fufiller = ndb.StructuredProperty(Submission)
     submissions = ndb.StructuredProperty(Submission, repeated=True)
 
 class AddProjectPage(webapp2.RequestHandler):
@@ -101,7 +109,8 @@ class AddProjectPostedPage(webapp2.RequestHandler):
         project.title = u_title
         project.description = self.request.get('description')
         project.backers = [self_backing]
-        project.fufilled = False
+        project.fufiller = None
+        project.submissions = []
         project.put()
 
         self.redirect('/project/' + urllib.quote(u_title))
@@ -110,18 +119,22 @@ class ProjectPage(webapp2.RequestHandler):
     def get(self, title):
         u_title = urllib.unquote(title)
 
+        #lookup project
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
         projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == u_title)
         project = projects_query.fetch(10)[0]
 
         self.response.write('<html><body>')
-        
         self.response.write("<h1>%s</h1>" % project.title)
+        if (project.fufiller):
+            self.response.write("This project has been fufilled!")
         self.response.write("<h2>Description</h2><p>%s" % project.description)
-        self.response.write("<h2>Backers</h2>")
+
+        self.response.write("<h2>Submitters</h2>")
         for s in project.submissions:
             self.response.write("<p>%s submitted" % (s.submitter.nickname()))
 
+        self.response.write("<h2>Backers</h2>")
         for b in project.backers:
             self.response.write("<p>%s backed %i" % (b.backer.nickname(), b.amount_backed))
 
@@ -133,17 +146,72 @@ class AddSubmissionPage(webapp2.RequestHandler):
     @login_required
     def get(self, title):
         u_title = urllib.unquote(title)
-
         self.response.write(ADD_SUBMISSION_FORM_HTML % u_title)
 
 class AddSubmissionPostedPage(webapp2.RequestHandler):
-    pass
+    def post(self):
+
+        user = users.get_current_user()
+
+        title = self.request.get('title')
+        content = self.request.get('content')
+
+        submission_list_name = self.request.get('submission_list_name', DEFAULT_SUBMISSION_LIST_NAME)
+        new_submission = Submission(parent=submission_list_key(submission_list_name))
+        new_submission.submitter = user
+        new_submission.content = content
+
+        #lookup project
+        project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
+        project = projects_query.fetch(1)[0]
+        project.submissions.append(new_submission)
+        project.put()
+
+
+
 
 class FufillProjectPage(webapp2.RequestHandler):
-    pass
+    @admin_required
+    def get(self, title):
+        u_title = urllib.unquote(title)
+
+        #lookup project
+        project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
+        project = projects_query.fetch(10)[0]
+
+        self.response.write('You want to fufill %s. Which submission shall you choose?' % u_title)
+
+        for s in project.submissions:
+            self.response.write("<p> <b> %s: </b> %s" % (s.submitter.nickname(), s.content))
+
+        self.response.write(FUFILL_PROJECT_FORM_HTML % u_title)
+
 
 class FufillProjectPostedPage(webapp2.RequestHandler):
-    pass
+    def post(self):
+        title = self.request.get('title')
+        chosen_user = self.request.get('chosen_user')
+
+        #lookup project
+        project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
+        project = projects_query.fetch(10)[0]
+
+        chosen_submission = None
+        for s in project.submissions:
+            if s.submitter.nickname() ==  chosen_user:
+                chosen_submission = s
+                break
+
+        project.fufiller = chosen_submission
+        project.put()
+
+        #credit account, etc
+
+
+
 
 
 class AddBackingPage(webapp2.RequestHandler):
@@ -162,11 +230,11 @@ class AddBackingPostedPage(webapp2.RequestHandler):
 
         user = users.get_current_user()
 
-        u_title = urllib.unquote(self.request.get('title'))
+        title = self.request.get('title')
         amount_to_back = int(self.request.get('amount_to_back'))
 
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
-        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == u_title)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
         project = projects_query.fetch(1)[0]
 
         backing_list_name = self.request.get('backers_list_name', DEFAULT_BACKING_LIST_NAME)
@@ -182,7 +250,7 @@ class AddBackingPostedPage(webapp2.RequestHandler):
         account.balance -= amount_to_back
         account.put()
 
-        self.redirect('/project/' + urllib.quote(u_title))
+        self.redirect('/project/' + urllib.quote(title))
 
 
 class MainPage(webapp2.RequestHandler):
@@ -238,6 +306,10 @@ application = webapp2.WSGIApplication([
     
     ('/add_submission/(.*)', AddSubmissionPage),
     ('/add_submission_post', AddSubmissionPostedPage),
+
+    ('/fufill_project/(.*)', FufillProjectPage),
+    ('/fufill_project_post', FufillProjectPostedPage),
+
     
     ('/project/(.*)',ProjectPage)
 ], debug=True)
