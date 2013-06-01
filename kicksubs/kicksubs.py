@@ -2,22 +2,32 @@ import cgi
 from google.appengine.api import users
 from google.appengine.ext import ndb
 import webapp2
+from webapp2_extras.appengine.users import login_required
 import urllib
 
 NEW_PROJECT_FORM_HTML = """\
-    <form action="/new_project_post" method="post">
-      <div><textarea name="title" rows="1"></textarea></div>
-      <div><textarea name="description" rows="3" cols="60"></textarea></div>
-      <div><textarea name="amount_backed" rows="1"></textarea></div>
+    <form action="/add_project_post" method="post">
+      <div>Title: <input name="title" rows="1"></input></div>
+      Description: <div><textarea name="description"3"  rows="cols="60"></textarea></div>
+      <p> Want to put up some of your own money to back this project? 
+      <div>Amount: <input name="amount_backed" rows="1"></input></div>
       <div><input type="submit" value="Submit Project"></div>
     </form>
 """
 
 ADD_BACKING_FORM_HTML = """\
     <form action="/add_backing_post" method="post">
-      <div><textarea name="title" rows="1">%s</textarea></div>
+      <div><input name="title" value='%s'></input></div>
       <div><textarea name="amount_to_back" rows="1">50</textarea></div>
       <div><input type="submit" value="Confirm Backing"></div>
+    </form>
+"""
+
+ADD_SUBMISSION_FORM_HTML = """\
+    <form action="/add_submission_post" method="post">
+      <div><input name="title" value=%s></input></div>
+      <div><textarea name="content" rows="1">50</textarea></div>
+      <div><input type="submit" value="Confirm Submission"></div>
     </form>
 """
 
@@ -35,13 +45,21 @@ DEFAULT_ACCOUNT_LIST_NAME = 'default_account_list'
 def account_list_key(account_list_name = DEFAULT_ACCOUNT_LIST_NAME):
     return ndb.Key('Account_List', account_list_name)
 
+DEFAULT_SUBMISSION_LIST_NAME = 'default_submission_list'
+def submission_list_key(submission_list_name = DEFAULT_SUBMISSION_LIST_NAME):
+    return ndb.Key('Submission_List', submission_list_name)
+
+class Account(ndb.Model):
+    user = ndb.UserProperty()
+    balance = ndb.IntegerProperty()
+
 class Backing(ndb.Model):
     backer = ndb.UserProperty()
     amount_backed = ndb.IntegerProperty()
 
-class Account(ndb.Model):
-    user = ndb.UserProperty()
-    balance = ndb.IntegerProperty(default=0)
+class Submission(ndb.Model):
+    submitter = ndb.UserProperty()
+    content = ndb.TextProperty()
 
 class Project(ndb.Model):
     author = ndb.UserProperty()
@@ -49,60 +67,93 @@ class Project(ndb.Model):
     description = ndb.StringProperty()
     date_created = ndb.DateTimeProperty(auto_now_add=True)
     backers = ndb.StructuredProperty(Backing, repeated=True)
+    fufilled = ndb.BooleanProperty()
+    submissions = ndb.StructuredProperty(Submission, repeated=True)
 
-class NewProjectPostedPage(webapp2.RequestHandler):
+class AddProjectPage(webapp2.RequestHandler):
+    @login_required
+    def get(self):
+        user = users.get_current_user()
+        self.response.write(NEW_PROJECT_FORM_HTML)
+
+class AddProjectPostedPage(webapp2.RequestHandler):
+
     def post(self):
-        self.response.write('<html><body>')
+
+        u_title = urllib.unquote(self.request.get('title'))
 
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
         backing_list_name = self.request.get('backers_list_name', DEFAULT_BACKING_LIST_NAME)
         account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
-        project = Project(parent=project_list_key(project_list_name))
 
-        if not(users.get_current_user()):
-            self.response.write("Error: Not signed in!")
-            return
-
-        project.author = users.get_current_user()
-        project.title = self.request.get('title')
-        project.description = self.request.get('description')
-
+        #create initial backing
         amount = int(self.request.get('amount_backed'))
         self_backing = Backing(parent=backing_list_key(backing_list_name), backer = users.get_current_user(), amount_backed = amount)
+
+        #remove credits
+        account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == users.get_current_user()).fetch(1)[0]
+        account.balance -= amount
+        account.put()
+
+        #Create new project
+        project = Project(parent=project_list_key(project_list_name))
+        project.author = users.get_current_user()
+        project.title = u_title
+        project.description = self.request.get('description')
         project.backers = [self_backing]
+        project.fufilled = False
         project.put()
 
-        self.response.write('</body></html>')
+        self.redirect('/project/' + urllib.quote(u_title))
 
 class ProjectPage(webapp2.RequestHandler):
     def get(self, title):
-        self.response.write('<html><body>')
         u_title = urllib.unquote(title)
 
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
         projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == u_title)
-        projects = projects_query.fetch(10)
+        project = projects_query.fetch(10)[0]
 
-        self.response.write('%i projects found' % len(projects))
+        self.response.write('<html><body>')
+        
+        self.response.write("<h1>%s</h1>" % project.title)
+        self.response.write("<h2>Description</h2><p>%s" % project.description)
+        self.response.write("<h2>Backers</h2>")
+        for s in project.submissions:
+            self.response.write("<p>%s submitted" % (s.submitter.nickname()))
 
-        if (len(projects) == 0):
-            self.response.write("Error: no projects found with title %s" % u_title)
+        for b in project.backers:
+            self.response.write("<p>%s backed %i" % (b.backer.nickname(), b.amount_backed))
 
-        for p in projects:
-            self.response.write("<h1>%s</h1>" % p.title)
-            self.response.write("<p>%s" % p.description)
-            self.response.write("<p>Backers: %s" % str(p.backers))
+        self.response.write("<p>")
+        self.response.write("<a href=%s>Back</a> this project!" % ('/add_backing/' + urllib.quote(u_title)))
+
+
+class AddSubmissionPage(webapp2.RequestHandler):
+    @login_required
+    def get(self, title):
+        u_title = urllib.unquote(title)
+
+        self.response.write(ADD_SUBMISSION_FORM_HTML % u_title)
+
+class AddSubmissionPostedPage(webapp2.RequestHandler):
+    pass
+
+class FufillProjectPage(webapp2.RequestHandler):
+    pass
+
+class FufillProjectPostedPage(webapp2.RequestHandler):
+    pass
+
 
 class AddBackingPage(webapp2.RequestHandler):
     def get(self, title):
         self.response.write('<html><body>')
 
         account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
-        accounts = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == users.get_current_user()).fetch(1)
-        account = accounts[0]
+        account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == users.get_current_user()).fetch(1)[0]
 
         self.response.write('Are you sure you want to back %s? You have %s credits left' % (title, account.balance))
-
         self.response.write(ADD_BACKING_FORM_HTML % title)
 
 class AddBackingPostedPage(webapp2.RequestHandler):
@@ -131,7 +182,7 @@ class AddBackingPostedPage(webapp2.RequestHandler):
         account.balance -= amount_to_back
         account.put()
 
-        self.response.write('</body></html>')
+        self.redirect('/project/' + urllib.quote(u_title))
 
 
 class MainPage(webapp2.RequestHandler):
@@ -174,20 +225,19 @@ class MainPage(webapp2.RequestHandler):
             title = cgi.escape(p.title)
 
             self.response.write(
-                '<p> <b> %s </b> by %s <br> %s' % (title, author_nick, description))
-
-        if user: #refactor this away
-            self.response.write('<p> Hello, ' + user.nickname())
-            self.response.write(NEW_PROJECT_FORM_HTML)
-        else:
-            self.redirect(users.create_login_url(self.request.uri))
-
-
+                '<p> <a href=%s> <b> %s </b> </a> by %s <br> %s' % ('/project/' + urllib.quote(title), title, author_nick, description))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
+
+    ('/add_project', AddProjectPage),
+    ('/add_project_post', AddProjectPostedPage),
+    
     ('/add_backing/(.*)', AddBackingPage),
     ('/add_backing_post', AddBackingPostedPage),
-    ('/new_project_post', NewProjectPostedPage),
+    
+    ('/add_submission/(.*)', AddSubmissionPage),
+    ('/add_submission_post', AddSubmissionPostedPage),
+    
     ('/project/(.*)',ProjectPage)
 ], debug=True)
