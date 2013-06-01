@@ -7,3 +7,7 @@ threadsafe: true
 handlers:
 - url: /.*
   script: kicksubs.application
+
+libraries:
+- name: webapp2
+  version: latest
