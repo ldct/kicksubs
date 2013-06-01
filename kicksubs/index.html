@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <body>
+
+    {% if user %}
+      <p> Welcome, {{user.name}}! You have {{user.balance}} credits left. <a href={{user.url}}> Logout </a>
+    {% else %}
+      <p> Please <a href={{login_url}}> Login or Register </a>
+    {% endif %}
+
+    <hr>
+
+    Latest {{projects|length}} Requests:
+
+    {% for project in projects %}
+      <br> <br>
+      <a href={{project.url}}> <b> {{ project.title}} </b> </a> by {{ project.author }}
+      <blockquote> {{ project.description }} </blockquote>
+      {{project.num_backers}} backers have offerred {{project.total_amount_backed}} credits for this project
+    {% endfor %}
+
+    <hr>
+
+    <a href='/add_project'> Create </a> a new request
+
+  </body>
+</html>

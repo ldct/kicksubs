@@ -1,4 +1,5 @@
-import cgi
+import os, cgi, urllib, jinja2
+from base64 import b64encode
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -6,8 +7,9 @@ from google.appengine.ext import ndb
 import webapp2
 from webapp2_extras.appengine.users import login_required, admin_required
 
-import urllib
-from base64 import b64encode
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'])
 
 NEW_PROJECT_FORM_HTML = """\
     <form action="/add_project_post" method="post">
@@ -262,6 +264,8 @@ class MainPage(webapp2.RequestHandler):
         self.response.write('<html><title>Main Page</title><body>')
         user = users.get_current_user()
 
+        template_values = {}
+
         if user:
             account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
             accounts = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == user).fetch(1)
@@ -275,27 +279,29 @@ class MainPage(webapp2.RequestHandler):
             accounts = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == user).fetch(1)
             account = accounts[0]
 
-            greeting = ('Welcome, %s! You have %s credits. (<a href="%s">sign out</a>)' %
-                        (user.nickname(), account.balance, users.create_logout_url('/')))
+            template_values["user"] = {'name': user.nickname(),
+                                       'balance': account.balance,
+                                       'url': users.create_logout_url('/')}
         else:
-            greeting = ('<a href="%s">Sign in or register</a>.' %
-                        users.create_login_url('/'))
-        self.response.write(greeting)
+            template_values["login_url"] = users.create_login_url('/')
 
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
 
         projects_query = Project.query(ancestor=project_list_key(project_list_name)).order(-Project.date_created)
         projects = projects_query.fetch(10)
 
-        self.response.write('<p> Latest %i Projects:' % len(projects))
+        template_values["projects"] = []
 
         for p in projects:
-            author_nick = p.author.nickname()
-            total_amount_backed = sum(b.amount_backed for b in p.backers)
-            num_backers = len(p.backers)
+            template_values["projects"].append({'author': p.author.nickname(),
+                                                'title': p.title,
+                                                'url': '/project/' + urllib.quote(p.title),
+                                                'description': p.description,
+                                                'total_amount_backed': sum(b.amount_backed for b in p.backers),
+                                                'num_backers': len(p.backers)})
 
-            self.response.write(
-                '<p> <a href=%s> <b> %s </b> </a> by %s <br> %s <br> %i backers have offerred a total of %i' % ('/project/' + urllib.quote(p.title), p.title, author_nick, p.description, num_backers, total_amount_backed))
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        self.response.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
