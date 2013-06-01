@@ -187,7 +187,7 @@ class FufillProjectPage(webapp2.RequestHandler):
         self.response.write('You want to fufill %s. Which submission shall you choose?' % title)
 
         for s in project.submissions:
-            self.response.write("<p> <b> %s: </b> %s" % (s.submitter.nickname(), s.content))
+            self.response.write("<p>%s <a href=data:text/plain;base64,%s> download </a>" % (s.submitter.nickname(), b64encode(s.content)))
 
         self.response.write(FUFILL_PROJECT_FORM_HTML % u_title)
 
@@ -211,11 +211,10 @@ class FufillProjectPostedPage(webapp2.RequestHandler):
         project.fufiller = chosen_submission
         project.put()
 
-        #credit account, etc
-
-
-
-
+        account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
+        account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == chosen_submission.submitter).fetch(1)[0]
+        account.balance += sum(b.amount_backed for b in project.backers)
+        account.put()
 
 class AddBackingPage(webapp2.RequestHandler):
     def get(self, title):
@@ -292,11 +291,11 @@ class MainPage(webapp2.RequestHandler):
 
         for p in projects:
             author_nick = p.author.nickname()
-            description = p.description
-            title = cgi.escape(p.title)
+            total_amount_backed = sum(b.amount_backed for b in p.backers)
+            num_backers = len(p.backers)
 
             self.response.write(
-                '<p> <a href=%s> <b> %s </b> </a> by %s <br> %s' % ('/project/' + urllib.quote(title), title, author_nick, description))
+                '<p> <a href=%s> <b> %s </b> </a> by %s <br> %s <br> %i backers have offerred a total of %i' % ('/project/' + urllib.quote(p.title), p.title, author_nick, p.description, num_backers, total_amount_backed))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
