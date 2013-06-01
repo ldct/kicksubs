@@ -1,9 +1,13 @@
 import cgi
+
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
 import webapp2
 from webapp2_extras.appengine.users import login_required, admin_required
+
 import urllib
+from base64 import b64encode
 
 NEW_PROJECT_FORM_HTML = """\
     <form action="/add_project_post" method="post">
@@ -25,7 +29,7 @@ ADD_BACKING_FORM_HTML = """\
 
 ADD_SUBMISSION_FORM_HTML = """\
     <form action="/add_submission_post" method="post">
-      <div><input name="title" value=%s></input></div>
+      <div><input name="title" value='%s'></input></div>
       Content: <div><textarea name="content" rows="3"></textarea></div>
       <div><input type="submit" value="Confirm Submission"></div>
     </form>
@@ -33,7 +37,7 @@ ADD_SUBMISSION_FORM_HTML = """\
 
 FUFILL_PROJECT_FORM_HTML = """\
     <form action="/fufill_project_post" method="post">
-    Title: <input name="title" value=%s></input>
+    Title: <input name="title" value='%s'></input>
     Chosen user: <input name="chosen_user"></input>
     <input type="submit" value="Fufill Project!"></div>
     </form>
@@ -117,30 +121,29 @@ class AddProjectPostedPage(webapp2.RequestHandler):
 
 class ProjectPage(webapp2.RequestHandler):
     def get(self, title):
-        u_title = urllib.unquote(title)
 
         #lookup project
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
-        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == u_title)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
         project = projects_query.fetch(10)[0]
 
         self.response.write('<html><body>')
         self.response.write("<h1>%s</h1>" % project.title)
         if (project.fufiller):
-            self.response.write("This project has been fufilled!")
+            self.response.write("This project has been fufilled by <b>%s</b>" % project.fufiller.submitter.nickname())
         self.response.write("<h2>Description</h2><p>%s" % project.description)
 
         self.response.write("<h2>Submitters</h2>")
         for s in project.submissions:
-            self.response.write("<p>%s submitted" % (s.submitter.nickname()))
+            self.response.write("<p>%s submitted <a href=data:text/plain;base64,%s> download </a>" % (s.submitter.nickname(), b64encode(s.content)))
 
         self.response.write("<h2>Backers</h2>")
         for b in project.backers:
             self.response.write("<p>%s backed %i" % (b.backer.nickname(), b.amount_backed))
 
         self.response.write("<p>")
-        self.response.write("<a href=%s>Back</a> this project!" % ('/add_backing/' + urllib.quote(u_title)))
-
+        self.response.write("<a href=%s>Back</a> this project! or <br>" % ('/add_backing/' + urllib.quote(title)))
+        self.response.write("<a href=%s>Submit</a> something for this project!" % ('/add_submission/' + urllib.quote(title)))
 
 class AddSubmissionPage(webapp2.RequestHandler):
     @login_required
@@ -168,7 +171,7 @@ class AddSubmissionPostedPage(webapp2.RequestHandler):
         project.submissions.append(new_submission)
         project.put()
 
-
+        self.redirect('/project/' + title)
 
 
 class FufillProjectPage(webapp2.RequestHandler):
@@ -178,10 +181,10 @@ class FufillProjectPage(webapp2.RequestHandler):
 
         #lookup project
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
-        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
+        projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == u_title)
         project = projects_query.fetch(10)[0]
 
-        self.response.write('You want to fufill %s. Which submission shall you choose?' % u_title)
+        self.response.write('You want to fufill %s. Which submission shall you choose?' % title)
 
         for s in project.submissions:
             self.response.write("<p> <b> %s: </b> %s" % (s.submitter.nickname(), s.content))
@@ -289,7 +292,7 @@ class MainPage(webapp2.RequestHandler):
 
         for p in projects:
             author_nick = p.author.nickname()
-            description = cgi.escape(p.description)
+            description = p.description
             title = cgi.escape(p.title)
 
             self.response.write(
