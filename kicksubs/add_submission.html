@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>CrowdSubs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">CrowdSubs</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="/">Home</a></li>
+              <li><a href="/">Projects</a></li>
+              <li class="active"><a href="/add_project">Create</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+
+          <p class="navbar-text pull-right">
+          {% if user %}
+            {{user.name}} | {{user.balance}}¢ (<a href="#">buy</a>) | <a href={{user.url}}> logout </a>
+          {% else %}
+            <a href={{login_url}}> Login or Register </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <form action="/add_submission_post" method="post">
+      <div><input name="title" value='{{title}}' type='hidden'></input></div>
+      <p> Paste your srt file here
+      <p><textarea name="content" rows="3" style="width:100%"></textarea>
+      <div><input type="submit" value="Confirm Submission"></div>
+    </form>
+
+    <hr>
+    
+  </body>
+</html>

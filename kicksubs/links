@@ -1,0 +1,14 @@
+<iframe src="http://embed.ted.com/talks/sugata_mitra_build_a_school_in_the_cloud.html" width="560" height="315" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+
+
+<video src="/static/qm.mp4" id="video" width="640" controls>
+</video>
+<div class="srt"
+     data-video="video"
+     data-srt="/static/qm.srt">
+</div>
+
+<div class="srt"
+     data-video="video"
+     data-srt="/static/qm_bad.srt">
+</div>

@@ -1,0 +1,335 @@
+
+1
+00:00:00,000 --> 00:00:05,010
+Hello, everyone, and welcome to this class
+on quantum mechanics and quantum
+
+2
+00:00:05,010 --> 00:00:10,069
+computations. My name is Umesh Vazirani
+and I am a professor at the University of
+
+3
+00:00:10,069 --> 00:00:16,014
+California at Berkeley. Here at Berkeley,
+we are very excited to be part of this
+
+4
+00:00:16,014 --> 00:00:21,087
+revolution in education. Bringing cutting
+edge courses to anyone in any part of the
+
+5
+00:00:21,087 --> 00:00:28,064
+world. So , what is quantum computation?
+Quantum computation is a very young field,
+
+6
+00:00:28,064 --> 00:00:35,008
+which is based on the discovery that
+quantum systems can be exponentially
+
+7
+00:00:35,008 --> 00:00:42,013
+powerful. I'll say a lot more about this
+in subsequent videos, but in this video I
+
+8
+00:00:42,013 --> 00:00:48,084
+want to talk about the format of the
+course. The course is offered over eight
+
+9
+00:00:48,084 --> 00:00:55,009
+weeks followed by a final exam. The
+material will be presented through a
+
+10
+00:00:55,009 --> 00:01:01,093
+series of short videos, which will be
+augmented with inline quizzes to help you
+
+11
+00:01:01,093 --> 00:01:08,075
+reinforce your understanding of the
+material. There will be seven problem
+
+12
+00:01:08,075 --> 00:01:15,064
+sets, each, each worth ten percent of the
+score. And the problem sets will, will
+
+13
+00:01:15,064 --> 00:01:21,069
+have, mainly multiple choice, and
+questions with numeric answers, which you
+
+14
+00:01:21,069 --> 00:01:27,057
+will turn in. To make sure that you
+understand the material really well, we
+
+15
+00:01:27,057 --> 00:01:33,078
+will allow you to, make multiple attempts
+at the problem sets. After your first
+
+16
+00:01:33,078 --> 00:01:40,066
+attempt, every subsequent attempt will be,
+penalized ten%. If you want to understand
+
+17
+00:01:40,066 --> 00:01:47,049
+the material at greater depth, we'll also
+include optional long questions. These you
+
+18
+00:01:47,049 --> 00:01:53,781
+do not have to turn in, but you're welcome
+to discuss these with your fellow students
+
+19
+00:01:53,781 --> 00:01:59,617
+in, online forums which I'll talk about
+later. The final 30 percent of your score
+
+20
+00:01:59,617 --> 00:02:06,996
+will be based on the final exam which is,
+which you can think of as a particularly
+
+21
+00:02:06,996 --> 00:02:12,880
+long problem set. Okay, so what is the
+required background for this course? So,
+
+22
+00:02:12,880 --> 00:02:19,591
+this course has been carefully designed to
+make it accessible to students from a
+
+23
+00:02:19,591 --> 00:02:26,130
+multiple of backgrounds including Computer
+Science, Physics, Chemistry, Mathematics,
+
+24
+00:02:26,130 --> 00:02:32,967
+etc. And so, we've tried to minimize the
+number of requirements for this course.
+
+25
+00:02:32,967 --> 00:02:39,245
+So, in particular, I'll not assume any
+prior knowledge of quantum mechanics. But
+
+26
+00:02:39,245 --> 00:02:46,289
+to take this course, you will need to have
+a thoroug h understanding of basic linear
+
+27
+00:02:46,289 --> 00:02:52,245
+Algebra. What I mean by that is, simple
+concepts such as vectors and matrices,
+
+28
+00:02:52,245 --> 00:02:58,556
+orthogonal bases, inner products, igon
+values and igon vectors. To help you
+
+29
+00:02:58,556 --> 00:03:04,448
+review your knowledge of this material,
+we, we will, we will include some sort of
+
+30
+00:03:04,448 --> 00:03:10,557
+supplementary material and, and perhaps a
+video about this, about this subject. I'll
+
+31
+00:03:10,557 --> 00:03:17,288
+also assume very basic knowledge of
+computer science. Things such as the big O
+
+32
+00:03:17,288 --> 00:03:23,458
+notation, or some elementary algorithms,
+but particularly, how you analyze the
+
+33
+00:03:23,458 --> 00:03:29,307
+running time of algorithms by counting the
+number of steps. There are few other
+
+34
+00:03:29,307 --> 00:03:35,192
+important issues we should go through.
+This class has an honor code. This is the
+
+35
+00:03:35,192 --> 00:03:42,520
+same kind of honor code we have for our,
+in class students here, in Berkeley. So,
+
+36
+00:03:42,520 --> 00:03:45,358
+you are allowed to, discuss the material
+in this course, in fact, you're encouraged
+
+37
+00:03:45,358 --> 00:03:50,332
+to the discuss the material in this
+course, with your fellow students. You can
+
+38
+00:03:50,332 --> 00:03:56,015
+even discuss the problem sets with your
+fellow students, you know, to ask
+
+39
+00:03:56,015 --> 00:04:02,808
+clarifying questions, etc. But the answers
+that you turn in have to be your own. In
+
+40
+00:04:02,808 --> 00:04:09,591
+addition, we'll request that you, not
+distribute online the problem sets or any
+
+41
+00:04:09,591 --> 00:04:16,570
+of the answers, that we post. This is so
+that, in subsequent offerings of these, of
+
+42
+00:04:16,570 --> 00:04:22,926
+this course, the students are allowed to
+work independently on these questions.
+
+43
+00:04:22,926 --> 00:04:30,570
+I'll be posting course notes, every week.
+You should think of this as a text book
+
+44
+00:04:30,570 --> 00:04:36,629
+for the class. This brings us to the
+question of time management. So, you
+
+45
+00:04:36,629 --> 00:04:42,035
+should expect to spend anywhere from five
+to twelve or more hours per week on this
+
+46
+00:04:42,035 --> 00:04:47,447
+course. Depending, of course, on the kind
+of background you bring to this, to this
+
+47
+00:04:47,447 --> 00:04:52,545
+course, and also the depth to which you
+want to understand the material. So, the
+
+48
+00:04:52,545 --> 00:04:57,463
+material is going to be formulated so
+that, you can understand it, either at a
+
+49
+00:04:57,463 --> 00:05:02,290
+high level, or if you want to, you can use
+this material as a spring book, to
+
+50
+00:05:02,290 --> 00:05:08,082
+understanding the various aspects of this
+material at a greater depth. The course
+
+51
+00:05:08,082 --> 00:05:14,162
+notes will help you to do this, as well
+the optional problem sets. There' s one
+
+52
+00:05:14,162 --> 00:05:19,688
+other important point, which is that
+there's an online discussion forum for
+
+53
+00:05:19,688 --> 00:05:24,563
+this class, which will allow you to
+interact with your fellow students. This
+
+54
+00:05:24,563 --> 00:05:29,515
+is a very important part of this class.
+This will make it more fun for you, but
+
+55
+00:05:29,515 --> 00:05:34,456
+it'll also allow you to understand the
+material at a greater depth. We also
+
+56
+00:05:34,456 --> 00:05:40,213
+encourage to form study groups, either
+physically or through this online forum.
+
+57
+00:05:40,213 --> 00:05:46,113
+Okay, so, what will you learn in this
+class. So, as I mentioned, one of the key
+
+58
+00:05:46,113 --> 00:05:52,562
+aspects of quantum computation is the
+exponential power of quantum systems. So,
+
+59
+00:05:52,562 --> 00:05:59,222
+in this course you'll learn, what is the
+source of this power? And how can you use
+
+60
+00:05:59,222 --> 00:06:05,443
+this source? How can you exploit this
+power to design quantum algorithms? By the
+
+61
+00:06:05,443 --> 00:06:10,621
+end of this course, you'll, you'll
+understand several iconic quantum
+
+62
+00:06:10,621 --> 00:06:15,823
+algorithms, including the quantum
+algorithm for factoring integers
+
+63
+00:06:15,823 --> 00:06:22,615
+efficiently. You'll also learn what are
+the limitations of the power of quantum
+
+64
+00:06:22,615 --> 00:06:28,922
+mechanics. In order to do all this, you
+have to, have an, understanding of the
+
+65
+00:06:28,922 --> 00:06:35,570
+basic, of basic quantum mechanics, and so
+another way to view this course is as a
+
+66
+00:06:35,570 --> 00:06:42,884
+simple and conceptional introduction to
+the basic elements of quantum mechanics.
+
+67
+00:06:42,884 --> 00:06:48,025
+Okay. So, I look forward to having you in,
+in this course.

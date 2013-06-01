@@ -11,38 +11,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'])
 
-NEW_PROJECT_FORM_HTML = """\
-    <form action="/add_project_post" method="post">
-      <div>Title: <input name="title" rows="1"></input></div>
-      Description: <div><textarea name="description"3"  rows="cols="60"></textarea></div>
-      <p> Want to put up some of your own money to back this project? 
-      <div>Amount: <input name="amount_backed" value=10></input></div>
-      <div><input type="submit" value="Submit Project"></div>
-    </form>
-"""
-
-ADD_BACKING_FORM_HTML = """\
-    <form action="/add_backing_post" method="post">
-      <div><input name="title" value='%s'></input></div>
-      <div><textarea name="amount_to_back" rows="1">50</textarea></div>
-      <div><input type="submit" value="Confirm Backing"></div>
-    </form>
-"""
-
-ADD_SUBMISSION_FORM_HTML = """\
-    <form action="/add_submission_post" method="post">
-      <div><input name="title" value='%s'></input></div>
-      Content: <div><textarea name="content" rows="3"></textarea></div>
-      <div><input type="submit" value="Confirm Submission"></div>
-    </form>
-"""
 
 FUFILL_PROJECT_FORM_HTML = """\
-    <form action="/fufill_project_post" method="post">
-    Title: <input name="title" value='%s'></input>
-    Chosen user: <input name="chosen_user"></input>
-    <input type="submit" value="Fufill Project!"></div>
-    </form>
 """
 
 
@@ -147,7 +117,7 @@ class ProjectPage(webapp2.RequestHandler):
                                                    'content': b64encode(s.content)})
 
         for b in project.backers:
-            template_values['backers'].append({'nameu': b.backer.nickname(),
+            template_values['backers'].append({'name': b.backer.nickname(),
                                                'amount': b.amount_backed})
 
         template = JINJA_ENVIRONMENT.get_template('view_project.html')
@@ -157,8 +127,13 @@ class ProjectPage(webapp2.RequestHandler):
 class AddSubmissionPage(webapp2.RequestHandler):
     @login_required
     def get(self, title):
-        u_title = urllib.unquote(title)
-        self.response.write(ADD_SUBMISSION_FORM_HTML % u_title)
+
+        template_values = base_template_value(self)
+        template_values["title"] = title
+
+        template = JINJA_ENVIRONMENT.get_template('add_submission.html')
+        self.response.write(template.render(template_values))
+
 
 class AddSubmissionPostedPage(webapp2.RequestHandler):
     def post(self):
@@ -227,13 +202,17 @@ class FufillProjectPostedPage(webapp2.RequestHandler):
 
 class AddBackingPage(webapp2.RequestHandler):
     def get(self, title):
-        self.response.write('<html><body>')
+
+        template_values = base_template_value(self)
 
         account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
         account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == users.get_current_user()).fetch(1)[0]
 
-        self.response.write('Are you sure you want to back %s? You have %s credits left' % (title, account.balance))
-        self.response.write(ADD_BACKING_FORM_HTML % title)
+        template_values["title"] = title
+
+        template = JINJA_ENVIRONMENT.get_template('add_backing.html')
+        self.response.write(template.render(template_values))
+
 
 class AddBackingPostedPage(webapp2.RequestHandler):
     

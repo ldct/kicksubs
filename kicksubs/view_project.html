@@ -19,6 +19,10 @@
       }
     </style>
 
+    <script type="text/javascript" src="/static/jquery.srt.js"></script>
+
+    <link href="/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
   </head>
 
   <body>
@@ -47,35 +51,59 @@
     </div>
 
 
+    <h1> {{ title }} </h1>
 
-    <hr>
+    <div class="row">
+    <div class="span8">
 
-    <h3>Description</h3>
+      {{ description }}
 
-    {{ description }}
+      {% if fufiller %}
+        <p> Note: This request has already been fufilled by {{fufiller}}
+      {% endif %}
 
-    <h3>Submitters</h3>
+    </div>
 
-    <ul>
-    {% for submission in submissions %}
-      <li> <b> {{submission.submitter}} </b> <a href="data:text/plain;base64,{{submission.content}}"> Download </a>
-      </li>
-    {% endfor %}
-    </ul>
+    <div class="span4">
 
-    <hr>
+      <h3>Submitters</h3>
+
+      <ul>
+      {% for submission in submissions %}
+        <li> <b> {{submission.submitter}} </b> <a href="data:text/plain;base64,{{submission.content}}"> Download </a>
+        </li>
+      {% endfor %}
+      </ul>
+
+      <hr>
+      
+      <h3>Backers</h3>
+
+      <ul>
+      {% for backer in backers %}
+        <li> <b> {{backer.name}} </b> backed {{backer.amount}}¢ 
+      {% endfor %}
+      </ul>
+
+      <hr>
+
+      <a href='/add_backing/{{quoted_title}}'> Back </a> this request! or
+      <br>
+      <a href='/add_submission/{{quoted_title}}'> Submit </a> something to fufill it!
+
+      <hr>
+
+    </div>
+    </div>
     
-    <h3>Backers</h3>
+    <h4> Admins </h4>
 
-    {% for backer in backers %}
-      <li> <b> {{backer.name}} </b> backed {{backer.amount}}¢ 
-    {% endfor %}
+    <form action="/fufill_project_post" method="post">
+    <input name="title" value='{{title}}' type=hidden></input>
+    Chosen user: <input name="chosen_user"></input>
+    <input type="submit" value="Fufill Project!"></div>
+    </form>
 
-    <hr>
-
-    <a href='/add_backing/{{quoted_title}}'> Back </a> this request! or
-    <br>
-    <a href='/add_submission/{{quoted_title}}'> Submit </a> something to fufill it!
 
   </body>
 </html>
