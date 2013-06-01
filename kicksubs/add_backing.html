@@ -30,9 +30,9 @@
           <a class="brand" href="/">CrowdSubs</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
+              <li><a href="/">Home</a></li>
               <li><a href="/">Projects</a></li>
-              <li><a href="/add_project">Create</a></li>
+              <li class="active"><a href="/add_project">Create</a></li>
             </ul>
           </div><!--/.nav-collapse -->
 
@@ -46,22 +46,17 @@
       </div>
     </div>
 
-
-
     <hr>
 
-    Latest {{projects|length}} Requests:
-
-    {% for project in projects %}
-      <br> <br>
-      <a href={{project.url}}> <b> {{ project.title}} </b> </a> by {{ project.author }}
-      <blockquote> {{ project.description }} </blockquote>
-      {{project.num_backers}} backers have offerred {{project.total_amount_backed}} credits for this project
-    {% endfor %}
+    <form action="/add_project_post" method="post">
+      <p> <b> Title </b> &nbsp; &nbsp; &nbsp; <input name="title" rows="1" style="width: 600px"></input>
+      <p>
+      <textarea name="description"  rows="3" style="width:650px"></textarea>
+      <p> Want to put up some of your own money to back this project? &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="amount_backed" value=10></input>
+      <div><input type="submit" value="Submit Project"></div>
+    </form>
 
     <hr>
-
-    <a href='/add_project'> Create </a> a new request
 
   </body>
 </html>

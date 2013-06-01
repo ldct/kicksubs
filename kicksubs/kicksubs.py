@@ -87,8 +87,10 @@ class Project(ndb.Model):
 class AddProjectPage(webapp2.RequestHandler):
     @login_required
     def get(self):
-        user = users.get_current_user()
-        self.response.write(NEW_PROJECT_FORM_HTML)
+
+        template_values = base_template_value(self)
+        template = JINJA_ENVIRONMENT.get_template('add_project.html')
+        self.response.write(template.render(template_values))
 
 class AddProjectPostedPage(webapp2.RequestHandler):
 
@@ -124,28 +126,33 @@ class AddProjectPostedPage(webapp2.RequestHandler):
 class ProjectPage(webapp2.RequestHandler):
     def get(self, title):
 
+        template_values = base_template_value(self)
+
         #lookup project
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
         projects_query = Project.query(ancestor=project_list_key(project_list_name)).filter(Project.title == title)
         project = projects_query.fetch(10)[0]
 
-        self.response.write('<html><body>')
-        self.response.write("<h1>%s</h1>" % project.title)
         if (project.fufiller):
-            self.response.write("This project has been fufilled by <b>%s</b>" % project.fufiller.submitter.nickname())
-        self.response.write("<h2>Description</h2><p>%s" % project.description)
+            template_values['fufiller'] = project.fufiller.submitter.nickname()
 
-        self.response.write("<h2>Submitters</h2>")
+        template_values['title'] = project.title
+        template_values['quoted_title'] = urllib.quote(project.title)
+        template_values['description'] = project.description
+        template_values['submissions'] = []
+        template_values['backers'] = []
+
         for s in project.submissions:
-            self.response.write("<p>%s submitted <a href=data:text/plain;base64,%s> download </a>" % (s.submitter.nickname(), b64encode(s.content)))
+            template_values['submissions'].append({'submitter': s.submitter.nickname(),
+                                                   'content': b64encode(s.content)})
 
-        self.response.write("<h2>Backers</h2>")
         for b in project.backers:
-            self.response.write("<p>%s backed %i" % (b.backer.nickname(), b.amount_backed))
+            template_values['backers'].append({'nameu': b.backer.nickname(),
+                                               'amount': b.amount_backed})
 
-        self.response.write("<p>")
-        self.response.write("<a href=%s>Back</a> this project! or <br>" % ('/add_backing/' + urllib.quote(title)))
-        self.response.write("<a href=%s>Submit</a> something for this project!" % ('/add_submission/' + urllib.quote(title)))
+        template = JINJA_ENVIRONMENT.get_template('view_project.html')
+        self.response.write(template.render(template_values))
+
 
 class AddSubmissionPage(webapp2.RequestHandler):
     @login_required
@@ -257,14 +264,26 @@ class AddBackingPostedPage(webapp2.RequestHandler):
         self.redirect('/project/' + urllib.quote(title))
 
 
+def base_template_value(self):
+    template_value = {}
+    user = users.get_current_user()
+    if user:
+        account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
+        account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == user).fetch(1)[0]
+
+        template_value["user"] = {'name': user.nickname(),
+                                   'balance': account.balance,
+                                   'url': users.create_logout_url('/')}
+    else:
+        template_value["login_url"] = users.create_login_url('/')
+    return template_value
+
+
 class MainPage(webapp2.RequestHandler):
 
     def get(self):
 
-        self.response.write('<html><title>Main Page</title><body>')
         user = users.get_current_user()
-
-        template_values = {}
 
         if user:
             account_list_name = self.request.get('account_list_name', DEFAULT_ACCOUNT_LIST_NAME)
@@ -279,11 +298,7 @@ class MainPage(webapp2.RequestHandler):
             accounts = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == user).fetch(1)
             account = accounts[0]
 
-            template_values["user"] = {'name': user.nickname(),
-                                       'balance': account.balance,
-                                       'url': users.create_logout_url('/')}
-        else:
-            template_values["login_url"] = users.create_login_url('/')
+        template_values = base_template_value(self)
 
         project_list_name = self.request.get('project_list_name', DEFAULT_PROJECT_LIST_NAME)
 
