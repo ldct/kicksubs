@@ -2,43 +2,40 @@ Clear store, launch GAE. go.
 
 Login as paul@gmail.com
 
-Create a request with title 
+Exploring Quantum Physics 1 - 1
+
+<video src="/static/qm.mp4" id="video" width="560" controls>
+</video>
+<hr>
+<span class="srt"
+     data-video="video"
+     data-srt="/static/qm.srt">
+</span>
+<br>
+<small>subs by <b>rms</b> <span class="text-success">108 Upvotes</span> <span class="text-error">3 Downvotes</span></small>
+<p>
+<span class="srt"
+     data-video="video"
+     data-srt="/static/qm_bad.srt">
+</span>
+<br>
+<small>subs by <b>vicky@youtube.com</b><span class="text-error"> 38 Downvotes</span></small>
+
+Logout, Login as ryan@gmail.com
 
 Sugata Mitra TED Talk
 
 <iframe src="http://embed.ted.com/talks/sugata_mitra_build_a_school_in_the_cloud.html" width="560" height="315" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 
-Logout
-
-Login as ryan@gmail.com
-
-Create a request with title
-
-Coursera: Exploring Quantum Physics 1 - 1
-
-<video src="/static/qm.mp4" id="video" width="560" controls>
-</video>
-<div class="srt"
-     data-video="video"
-     data-srt="/static/qm.srt">
-</div>
-
-<div class="srt"
-     data-video="video"
-     data-srt="/static/qm_bad.srt">
-</div>
-
-Create request
+How Schools Kill Creativity
 
 <iframe src="http://embed.ted.com/talks/ken_robinson_says_schools_kill_creativity.html" width="560" height="315" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 
-Logout. Login as chad@youtube.com
+Logout. Login as vicky@youtube.com
+add submission to coursera
 
-Submit something to coursera
-
-Logout. Login as rms@gnu.org
-
-Submit something to coursera
+Logout. Login as rms@gmail.com
+add submission to coursera
 
 Spam backers
 
