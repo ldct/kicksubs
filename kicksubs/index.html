@@ -50,14 +50,18 @@
 
     <hr>
 
-    Latest {{projects|length}} Requests:
+    <div class="row" style="padding-left:10px">
 
     {% for project in projects %}
+    <div class="span7" style="padding-left:50px">
       <br> <br>
-      <a href={{project.url}}> <b> {{ project.title}} </b> </a> by {{ project.author }}
-      <blockquote> {{ project.description }} </blockquote>
-      {{project.num_backers}} backers have offerred {{project.total_amount_backed}} credits for this project
+       <h3> <a href={{project.url}}> {{ project.title}} </a> <small> by {{ project.author }} </small> </h3>
+      <p> <p> {{ project.description }}
+      <h5> {{project.num_backers}} backers have offerred a total of {{project.total_amount_backed}}¢ for this request </h5>
+    </div>
     {% endfor %}
+
+    </div>
 
     <hr>
 

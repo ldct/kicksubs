@@ -1,0 +1,71 @@
+Clear store, launch GAE. go.
+
+Login as paul@gmail.com
+
+Create a request with title 
+
+Sugata Mitra TED Talk
+
+<iframe src="http://embed.ted.com/talks/sugata_mitra_build_a_school_in_the_cloud.html" width="560" height="315" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+
+Logout
+
+Login as ryan@gmail.com
+
+Create a request with title
+
+Coursera: Exploring Quantum Physics 1 - 1
+
+<video src="/static/qm.mp4" id="video" width="560" controls>
+</video>
+<div class="srt"
+     data-video="video"
+     data-srt="/static/qm.srt">
+</div>
+
+<div class="srt"
+     data-video="video"
+     data-srt="/static/qm_bad.srt">
+</div>
+
+Create request
+
+<iframe src="http://embed.ted.com/talks/ken_robinson_says_schools_kill_creativity.html" width="560" height="315" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+
+Logout. Login as chad@youtube.com
+
+Submit something to coursera
+
+Logout. Login as rms@gnu.org
+
+Submit something to coursera
+
+Spam backers
+
+
+
+
+
+
+Live demo
+
+Login as xuanji@gmail.com
+Back the coursera QM video - 5000 credits
+Login as god@bell-labs.com AS ADMIN
+Fufill rms 
+Logout
+Login as rms@gmail.com
+$50 to the first person who sings the free software song in Mexican
+
+Other features:
+
+Lower friction - it's so cheap, pay on my behalf. Every time a new coursera video comes out. Everytime I save a video to my youtube playlist. 
+Sub one line at a time - there's a company already doing this
+
+General principle:
+
+Public service requests. Everyone will benefit. Why no one do it now? Why so few volunteers? Tragedy of the commons
+
+Voice tanscription
+Translation
+Music transcription

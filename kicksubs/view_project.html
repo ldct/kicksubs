@@ -50,12 +50,13 @@
       </div>
     </div>
 
-
-    <h1> {{ title }} </h1>
-
     <div class="row">
-    <div class="span8">
+    <div class="span1">
+    </div>
+    <div class="span7">
 
+      <h1> {{ title }} </h1>
+      <hr>
       {{ description }}
 
       {% if fufiller %}
@@ -66,7 +67,7 @@
 
     <div class="span4">
 
-      <h3>Submitters</h3>
+      <h3>Submissions <small>total: {{submissions|length}}</small></h3>
 
       <ul>
       {% for submission in submissions %}
@@ -75,9 +76,11 @@
       {% endfor %}
       </ul>
 
+      <a href='/add_submission/{{quoted_title}}'> Submit </a> an srt file for this request!
+
       <hr>
       
-      <h3>Backers</h3>
+      <h3>Backers <small> total: {{total_amount_backed}}¢ </small> </h3>
 
       <ul>
       {% for backer in backers %}
@@ -85,24 +88,22 @@
       {% endfor %}
       </ul>
 
+      <a href='/add_backing/{{quoted_title}}'> Back </a> this request!
+
       <hr>
 
-      <a href='/add_backing/{{quoted_title}}'> Back </a> this request! or
-      <br>
-      <a href='/add_submission/{{quoted_title}}'> Submit </a> something to fufill it!
+      <h4> Fufill this request </h4>
+
+      <form action="/fufill_project_post" method="post">
+      <input name="title" value='{{title}}' type=hidden></input>
+      <input name="chosen_user"></input>
+      <p> <p> <input type="submit" value="Fufill Project"></div>
+      </form>
 
       <hr>
 
     </div>
     </div>
-    
-    <h4> Admins </h4>
-
-    <form action="/fufill_project_post" method="post">
-    <input name="title" value='{{title}}' type=hidden></input>
-    Chosen user: <input name="chosen_user"></input>
-    <input type="submit" value="Fufill Project!"></div>
-    </form>
 
 
   </body>

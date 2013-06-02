@@ -12,11 +12,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'])
 
 
-FUFILL_PROJECT_FORM_HTML = """\
-"""
-
-
-
 DEFAULT_PROJECT_LIST_NAME = 'default_project_list'
 def project_list_key(project_list_name = DEFAULT_PROJECT_LIST_NAME):
     return ndb.Key('Project_List', project_list_name)
@@ -74,8 +69,9 @@ class AddProjectPostedPage(webapp2.RequestHandler):
 
         #create initial backing
         amount = int(self.request.get('amount_backed'))
-        self_backing = Backing(parent=backing_list_key(backing_list_name), backer = users.get_current_user(), amount_backed = amount)
-
+        self_backing = Backing(parent=backing_list_key(backing_list_name))
+        self_backing.backer = users.get_current_user()
+        self_backing.amount_backed = amount
         #remove credits
         account = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == users.get_current_user()).fetch(1)[0]
         account.balance -= amount
@@ -119,6 +115,8 @@ class ProjectPage(webapp2.RequestHandler):
         for b in project.backers:
             template_values['backers'].append({'name': b.backer.nickname(),
                                                'amount': b.amount_backed})
+
+        template_values['total_amount_backed'] = sum(b.amount_backed for b in project.backers)
 
         template = JINJA_ENVIRONMENT.get_template('view_project.html')
         self.response.write(template.render(template_values))
@@ -271,7 +269,7 @@ class MainPage(webapp2.RequestHandler):
             if len(accounts) == 0:
                 new_account = Account(parent=account_list_key(account_list_name))
                 new_account.user = user
-                new_account.balance = 0
+                new_account.balance = 100
                 new_account.put()
 
             accounts = Account.query(ancestor=account_list_key(account_list_name)).filter(Account.user == user).fetch(1)
